@@ -38,6 +38,9 @@
 #include <asm/param.h>
 #include <asm/page.h>
 
+#include <linux/s2e.h>
+#include <linux/linux_monitor.h>
+
 #ifndef user_long_t
 #define user_long_t long
 #endif
@@ -994,6 +997,14 @@ static int load_elf_binary(struct linux_binprm *bprm)
 out:
 	kfree(loc);
 out_ret:
+    if(s2e_version() != 0) {
+        s2e_printf("binfmt_elf: detected process load %s ret=%d\n", bprm->interp, retval);
+    }
+    /*
+    if (retval == 0 && s2e_version() != 0) {
+        s2e_linux_elfbinary_load(current->pid, current->comm, current, &hdr, sizeof(hdr), bprm->interp, elf_entry);
+    }
+    */
 	return retval;
 
 	/* error cleanup */

@@ -23,6 +23,9 @@
 #define CREATE_TRACE_POINTS
 #include <asm/trace/exceptions.h>
 
+#include <linux/s2e.h>
+#include <linux/linux_monitor.h>
+
 /*
  * Page fault error code bits:
  *
@@ -171,6 +174,11 @@ force_sig_info_fault(int si_signo, int si_code, unsigned long address,
 {
 	unsigned lsb = 0;
 	siginfo_t info;
+
+    if(s2e_version() != 0) {
+        s2e_printf("SEGMENT FAULT at 0x%lx\n", task_pt_regs(tsk)->ip);
+        //s2e_linux_segment_fault(current->pid, current->comm, task_pt_regs(tsk)->ip, address, fault);
+    }
 
 	info.si_signo	= si_signo;
 	info.si_errno	= 0;
