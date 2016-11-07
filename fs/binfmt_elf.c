@@ -999,7 +999,7 @@ out:
 out_ret:
     if (retval == 0 && s2e_version() != 0) {
         s2e_printf("binfmt_elf: detected process load %s \n", bprm->interp);
-        s2e_linux_elfbinary_load(current->pid, current->comm, current, &hdr, sizeof(hdr), bprm->interp, elf_entry);
+        s2e_linux_elfbinary_load(current->pid, current->comm, current, (struct elfhdr *)bprm->buf, sizeof(struct elfhdr), bprm->interp, elf_entry);
     }
 	return retval;
 
@@ -1092,7 +1092,7 @@ out_free_ph:
 	kfree(elf_phdata);
 out:
     if (error == 0 && s2e_version() != 0){
-        s2e_printf("binfmt_elf: detected library load for pid: %d (%s)\n", file->name, current->pid, current->comm);
+        s2e_printf("binfmt_elf: detected library load for pid: %d (%s)\n", current->pid, current->comm);
     }
 	return error;
 }
