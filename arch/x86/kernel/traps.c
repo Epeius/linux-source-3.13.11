@@ -71,6 +71,9 @@ gate_desc debug_idt_table[NR_VECTORS] __page_aligned_bss;
 #include <asm/processor-flags.h>
 #include <asm/setup.h>
 
+#include <linux/s2e.h>
+#include <linux/linux_monitor.h>
+
 asmlinkage int system_call(void);
 #endif
 
@@ -201,6 +204,9 @@ dotraplinkage void do_##name(struct pt_regs *regs, long error_code)	\
 	info.si_code = sicode;						\
 	info.si_addr = (void __user *)siaddr;				\
 	prev_state = exception_enter();					\
+	if (s2e_version() != 0 && (sicode == FPE_INTDIV || sicode == FPE_FLTDIV)){   \
+        s2e_printf("Divide Zero found at 0x%lx\n", siaddr); /*s2e_linux_dividebyzero(current->pid, current->comm, sicode, siaddr); */ \
+	}                                               \
 	if (notify_die(DIE_TRAP, str, regs, error_code,			\
 			trapnr, signr) == NOTIFY_STOP) {		\
 		exception_exit(prev_state);				\

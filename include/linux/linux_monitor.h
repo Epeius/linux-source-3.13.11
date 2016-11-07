@@ -40,7 +40,8 @@
 enum S2E_LINUXMON_COMMANDS {
     SEGMENT_FAULT,
     ELFBINARY_LOAD,
-    LIBRARY_LOAD
+    LIBRARY_LOAD,
+    DIVIDE_BY_ZERO
 };
 
 struct S2E_LINUXMON_COMMAND_ELFBINARY_LOAD {
@@ -70,6 +71,11 @@ struct S2E_LINUXMON_COMMAND_LIBRARY_LOAD {
 } __attribute__((packed));
 
 
+struct S2E_LINUXMON_COMMAND_DIVIDE_BY_ZERO {
+    uint64_t fault_pc;
+    uint64_t sig_code;
+} __attribute__((packed));
+
 struct S2E_LINUXMON_COMMAND {
     uint64_t version;
     enum S2E_LINUXMON_COMMANDS Command;
@@ -78,10 +84,10 @@ struct S2E_LINUXMON_COMMAND {
         struct S2E_LINUXMON_COMMAND_ELFBINARY_LOAD ElfBinaryLoad;
         struct S2E_LINUXMON_COMMAND_LIBRARY_LOAD LibraryLoad;
         struct S2E_LINUXMON_COMMAND_SEGMENT_FAULT SegmentFault;
+        struct S2E_LINUXMON_COMMAND_DIVIDE_BY_ZERO DividebyZero;
     };
     char currentName[32]; // not NULL terminated
 } __attribute__((packed));
-
 
 static inline void s2e_linux_elfbinary_load(pid_t pid, const char *name, const struct task_struct *t, const void *hdr, size_t hdr_size, const char *path, uintptr_t entry)
 {
@@ -116,6 +122,19 @@ static inline void s2e_linux_segment_fault(pid_t pid, const char *name, uint64_t
 	cmd.SegmentFault.fault = fault;
 
 	s2e_invoke_plugin("LinuxMonitor2", &cmd, sizeof(cmd));
+}
+
+static inline void s2e_linux_dividebyzero(pid_t pid, const char *name, uint64_t sicode, uint64_t siaddr)
+{
+    struct S2E_LINUXMON_COMMAND cmd = { 0 };
+    cmd.version = S2E_LINUXMON_COMMAND_VERSION;
+    cmd.Command = DIVIDE_BY_ZERO;
+    cmd.currentPid = pid;
+    strncpy(cmd.currentName, name, sizeof(cmd.currentName));
+    cmd.DividebyZero.fault_pc = siaddr;
+    cmd.DividebyZero.sig_code = sicode;
+
+    s2e_invoke_plugin("LinuxMonitor2", &cmd, sizeof(cmd));
 }
 
 #endif
