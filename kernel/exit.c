@@ -59,6 +59,9 @@
 #include <asm/pgtable.h>
 #include <asm/mmu_context.h>
 
+#include <linux/s2e.h>
+#include <linux/linux_monitor.h>
+
 static void exit_mm(struct task_struct * tsk);
 
 static void __unhash_process(struct task_struct *p, bool group_dead)
@@ -871,6 +874,13 @@ void do_exit(long code)
 	/* causes final put_task_struct in finish_task_switch(). */
 	tsk->state = TASK_DEAD;
 	tsk->flags |= PF_NOFREEZE;	/* tell freezer to ignore us */
+
+	/* emit signal before the dead task be scheduled */
+	if (s2e_version() != 0) {
+	    s2e_printf("exit.c: detected process exit %s \n", tsk->comm);
+        s2e_linux_task_exit(tsk->pid, tsk->comm, tsk->exit_code);
+	}
+
 	schedule();
 	BUG();
 	/* Avoid "noreturn function does return".  */

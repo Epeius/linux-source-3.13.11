@@ -205,7 +205,8 @@ dotraplinkage void do_##name(struct pt_regs *regs, long error_code)	\
 	info.si_addr = (void __user *)siaddr;				\
 	prev_state = exception_enter();					\
 	if (s2e_version() != 0 && (sicode == FPE_INTDIV || sicode == FPE_FLTDIV)){   \
-        s2e_printf("Divide Zero found at 0x%lx\n", siaddr); /*s2e_linux_dividebyzero(current->pid, current->comm, sicode, siaddr); */ \
+        s2e_printf("Divide Zero found at 0x%lx\n", siaddr);  \
+        s2e_linux_dividebyzero(current->pid, current->comm, sicode, siaddr);  \
 	}                                               \
 	if (notify_die(DIE_TRAP, str, regs, error_code,			\
 			trapnr, signr) == NOTIFY_STOP) {		\
