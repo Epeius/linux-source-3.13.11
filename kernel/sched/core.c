@@ -89,6 +89,9 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
 
+#include <linux/s2e.h>
+#include <linux/linux_monitor.h>
+
 void start_bandwidth_timer(struct hrtimer *period_timer, ktime_t period)
 {
 	unsigned long delta;
@@ -2140,6 +2143,12 @@ context_switch(struct rq *rq, struct task_struct *prev,
 #endif
 
 	context_tracking_task_switch(prev, next);
+
+	/* emit signal before switching to next task. */
+	if (s2e_version() != 0){
+        s2e_linux_task_switch(prev, next);
+	}
+
 	/* Here we just switch the register state and the stack. */
 	switch_to(prev, next, prev);
 
